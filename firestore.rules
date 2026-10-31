@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Só estes 4 e-mails entram (iguais ao FAMILY do index.html, em minúsculas)
+    function isFamily() {
+      return request.auth != null &&
+        request.auth.token.email in ['felipe@familia.app', 'joana@familia.app', 'bento@familia.app', 'rafael@familia.app'];
+    }
+
+    match /messages/{id} {
+      allow read: if isFamily();
+      allow create: if isFamily()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.type in ['text', 'image', 'audio'];
+      allow delete: if isFamily() && resource.data.uid == request.auth.uid;
+    }
+
+    match /tokens/{uid} {
+      allow read, write: if isFamily() && request.auth.uid == uid;
+    }
+  }
+}

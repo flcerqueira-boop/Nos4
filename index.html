@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Nós 4">
+<meta name="theme-color" content="#E8F1F7">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<title>Nós 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E8F1F7; --surface:#FFFFFF; --ink:#1D2B3A; --muted:#5E7187; --line:#CFDDE8;
+  --sun:#FFC83D; --rec:#D93A3F; --mine:#2463C9;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#101A24; --surface:#1A2734; --ink:#E9F0F6; --muted:#93A6B9; --line:#2B3B4B; color-scheme:dark; }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Fredoka',ui-rounded,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);
+  font-size:18px;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;overflow:hidden}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.hidden{display:none!important}
+.screen{height:100dvh;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+
+/* Entrada */
+#login{align-items:center;justify-content:center;gap:28px;padding-left:24px;padding-right:24px;text-align:center}
+#login h1{font-size:32px;font-weight:600}
+.people{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+.person{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:19px;font-weight:500}
+.person .av{width:100px;height:100px;font-size:54px;border:4px solid transparent;transition:transform .15s}
+.person.sel .av{border-color:var(--ink);transform:scale(1.06)}
+#pwbox{display:flex;flex-direction:column;gap:12px;width:min(320px,100%)}
+#pw{font:inherit;font-size:20px;padding:14px 18px;border-radius:16px;border:2px solid var(--line);background:var(--surface);color:var(--ink);text-align:center}
+.err{color:var(--rec);font-size:16px;min-height:1.3em}
+
+/* Topo */
+header{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+.trio{display:flex}
+.trio .av{width:38px;height:38px;font-size:21px;border:3px solid var(--surface);margin-left:-12px}
+.trio .av:first-child{margin-left:0}
+header h1{font-size:22px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:23px;flex:none}
+.iconbtn:active{background:var(--bg)}
+.banner{background:var(--sun);color:#1D2B3A;font-size:15px;padding:10px 14px;display:flex;gap:10px;align-items:center}
+.banner span{flex:1}
+
+/* Mensagens */
+main{flex:1;position:relative;min-height:0}
+#msgs{position:absolute;inset:0;overflow-y:auto;padding:12px 12px 20px;display:flex;flex-direction:column;gap:5px;-webkit-overflow-scrolling:touch}
+#empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--muted);padding:24px;pointer-events:none;font-size:20px}
+.day{align-self:center;font-size:14px;color:var(--muted);background:var(--surface);padding:4px 14px;border-radius:999px;margin:14px 0 6px}
+.av{border-radius:50%;display:grid;place-items:center;flex:none;line-height:1}
+.row{display:flex;gap:8px;align-items:flex-end;max-width:min(82%,560px);margin-top:6px}
+.row.cont{margin-top:0}
+.row.me{align-self:flex-end;flex-direction:row-reverse}
+.row .av{width:36px;height:36px;font-size:20px}
+.row.me .av{display:none}
+.row.cont .av{visibility:hidden}
+.bubble{background:var(--surface);border:2px solid var(--c);border-radius:20px 20px 20px 6px;padding:8px 14px 6px;
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;min-width:64px}
+.row.me .bubble{background:var(--c);color:#fff;border-radius:20px 20px 6px 20px}
+.who{font-size:14px;font-weight:600;color:var(--c);margin-bottom:1px}
+.row.me .who,.row.cont .who{display:none}
+.text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.35}
+.time{font-size:12px;opacity:.7;text-align:right;margin-top:2px}
+.bubble.big{background:none!important;border-color:transparent;padding:0 2px;color:var(--ink)!important}
+.bubble.big .text{font-size:54px;line-height:1.1}
+.bubble.big .time{color:var(--muted)}
+.photo{display:block;width:100%;max-width:300px;max-height:360px;object-fit:cover;border-radius:14px;margin-top:4px;background:var(--line)}
+.audio{display:flex;align-items:center;gap:10px;min-width:200px;padding:4px 0}
+.play{width:44px;height:44px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;font-size:17px;flex:none}
+.row.me .play{background:#fff;color:var(--c)}
+.track{flex:1;height:6px;border-radius:3px;background:color-mix(in srgb,currentColor 22%,transparent);overflow:hidden}
+.track i{display:block;height:100%;width:0;background:currentColor}
+.dur{font-size:14px;min-width:38px;font-variant-numeric:tabular-nums}
+
+/* Composição */
+footer{background:var(--surface);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
+.compose{display:flex;align-items:flex-end;gap:6px}
+#txt{flex:1;resize:none;border:2px solid var(--line);border-radius:22px;padding:10px 16px;font:inherit;font-size:18px;
+  background:var(--bg);color:var(--ink);max-height:140px;line-height:1.3;min-height:48px}
+.round{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:23px;flex:none}
+#send{background:var(--mine);color:#fff;font-size:20px}
+#mic{background:var(--sun);color:#1D2B3A}
+.emojis{display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:4px;padding:4px 2px 10px;max-height:216px;overflow-y:auto}
+.emojis button{font-size:30px;height:50px;border-radius:12px}
+.emojis button:active{background:var(--bg)}
+.recbar{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 4px}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--rec);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.recbar .t{flex:1;font-size:20px;font-variant-numeric:tabular-nums}
+.pill{padding:11px 20px;border-radius:999px;font-weight:500;font-size:18px}
+.pill.ghost{background:var(--bg)}
+.pill.go{background:var(--mine);color:#fff}
+
+/* Foto ampliada, ajustes, avisos */
+#viewer{position:fixed;inset:0;background:rgba(0,0,0,.94);display:grid;place-items:center;z-index:20;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+#viewer img{max-width:100%;max-height:100%;object-fit:contain}
+#sheet{position:fixed;inset:0;background:rgba(10,20,30,.45);display:flex;align-items:flex-end;justify-content:center;z-index:15}
+#sheet .panel{background:var(--surface);width:min(520px,100%);border-radius:24px 24px 0 0;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px}
+#sheet h2{font-size:22px;font-weight:600;margin-bottom:4px}
+.opt{text-align:left;padding:15px 16px;border-radius:14px;background:var(--bg);font-size:18px}
+.note{font-size:15px;color:var(--muted);line-height:1.4}
+#toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  background:var(--ink);color:var(--bg);padding:11px 20px;border-radius:999px;font-size:16px;z-index:30;max-width:90%;text-align:center}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}.person .av{transition:none}}
+</style>
+</head>
+<body>
+
+<!-- Entrada -->
+<section id="login" class="screen hidden">
+  <h1>Quem é você?</h1>
+  <div class="people" id="people"></div>
+  <form id="pwbox" class="hidden" autocomplete="on">
+    <input id="pw" type="password" placeholder="Senha" autocomplete="current-password" required>
+    <button class="pill go" type="submit">Entrar</button>
+    <div class="err" id="err" role="alert"></div>
+  </form>
+</section>
+
+<!-- Chat -->
+<section id="chat" class="screen hidden">
+  <header>
+    <div class="trio" id="trio"></div>
+    <h1 id="title"></h1>
+    <button class="iconbtn" id="menuBtn" type="button" aria-label="Ajustes">⚙️</button>
+  </header>
+  <div class="banner hidden" id="installBanner">
+    <span>Para usar como app e receber avisos: toque em Compartilhar e depois em “Adicionar à Tela de Início”.</span>
+    <button type="button" id="installClose" aria-label="Fechar">✕</button>
+  </div>
+  <main>
+    <div id="msgs" aria-live="polite"></div>
+    <div id="empty" class="hidden">Ninguém falou nada ainda.<br>Mande um oi! 👋</div>
+  </main>
+  <footer>
+    <div class="emojis hidden" id="emojis"></div>
+    <div class="compose" id="compose">
+      <button class="round" id="emojiBtn" type="button" aria-label="Emojis">😀</button>
+      <button class="round" id="photoBtn" type="button" aria-label="Enviar foto">📷</button>
+      <textarea id="txt" rows="1" placeholder="Escreva aqui…" enterkeyhint="send"></textarea>
+      <button class="round" id="mic" type="button" aria-label="Gravar áudio">🎤</button>
+      <button class="round hidden" id="send" type="button" aria-label="Enviar">➤</button>
+    </div>
+    <div class="recbar hidden" id="recbar">
+      <span class="dot"></span>
+      <span class="t" id="recTime">0:00</span>
+      <button class="pill ghost" id="recCancel" type="button">Cancelar</button>
+      <button class="pill go" id="recSend" type="button">Enviar</button>
+    </div>
+    <input type="file" id="file" accept="image/*" class="hidden">
+  </footer>
+</section>
+
+<div id="viewer" class="hidden"><img alt="Foto ampliada"></div>
+
+<div id="sheet" class="hidden">
+  <div class="panel">
+    <h2>Ajustes</h2>
+    <button class="opt" id="pushBtn" type="button">🔔 Ativar avisos de mensagem</button>
+    <p class="note" id="pushNote"></p>
+    <button class="opt" id="logoutBtn" type="button">🚪 Sair desta conta</button>
+    <button class="pill ghost" id="sheetClose" type="button">Fechar</button>
+  </div>
+</div>
+
+<div id="toast" class="hidden" role="status"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, query, orderBy, limit, onSnapshot, addDoc, deleteDoc, doc, setDoc,
+         arrayUnion, arrayRemove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getMessaging, getToken, isSupported } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+
+/* ================= CONFIGURAÇÃO (edite aqui) ================= */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCNo2ru4lRnwNVHCsd2V-KKvInB13W53bI",
+  authDomain: "nos-4-bfc16.firebaseapp.com",
+  projectId: "nos-4-bfc16",
+  storageBucket: "nos-4-bfc16.firebasestorage.app",
+  messagingSenderId: "690592234660",
+  appId: "1:690592234660:web:4a4452acd84bf62243ba31"
+};
+// Firebase > Configurações do projeto > Cloud Messaging > Certificados push da Web
+const VAPID_KEY = "BCcw31MDEkdqRf6pylXmzQOiSffXtWzBA80DtWLaflO7ICtsViYbtzKTvkir67pkah7-54mQxRBLmTRy_PbGr40";
+const FAMILY_NAME = "Nós 4";
+// E-mails em minúsculas, iguais aos usuários criados no Firebase Authentication e no firestore.rules
+const FAMILY = [
+  { email: "felipe@familia.app", name: "Papai", emoji: "🧔🏻", color: "#2463C9" },
+  { email: "joana@familia.app",  name: "Mamãe", emoji: "👩🏻", color: "#C93A6C" },
+  { email: "bento@familia.app",  name: "Bento", emoji: "🦖",  color: "#157A4B" },
+  { email: "rafael@familia.app", name: "Rafael", emoji: "🐣", color: "#B86E00" }
+];
+const EMOJIS = "😀 😂 🤣 🥰 😍 😘 😎 🤩 😜 🤪 😴 🥺 😢 😭 😡 🤔 🙄 😱 🤗 🫡 👍 👎 👏 🙌 🤝 💪 🙏 👋 ❤️ 💙 💚 💛 🔥 ⭐ 🎉 🎂 🎁 ⚽ 🏀 🎮 🦖 🐶 🐱 🦄 🍕 🍔 🍟 🍦 🍫 🍉 🚗 ✈️ 🏖️ 🏠 🏫 📚 ✏️ ⏰ ✅ ❌ ❓ 💤".split(" ");
+/* ============================================================= */
+
+const $ = s => document.querySelector(s);
+const app = initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const byEmail = e => FAMILY.find(p => p.email.toLowerCase() === (e || "").toLowerCase());
+const tint = c => `color-mix(in srgb, ${c} 24%, var(--surface))`;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+
+let me = null, unsub = null, selected = null, myToken = null, currentAudio = null;
+
+/* ---------- utilidades ---------- */
+function toast(msg, ms = 2600) {
+  const t = $("#toast"); t.textContent = msg; t.classList.remove("hidden");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.add("hidden"), ms);
+}
+const pad = n => String(n).padStart(2, "0");
+const mmss = s => `${Math.floor(s / 60)}:${pad(Math.floor(s % 60))}`;
+const hhmm = t => { const d = new Date(t); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+function dayLabel(t) {
+  const d = new Date(t), today = new Date(), y = new Date(); y.setDate(today.getDate() - 1);
+  if (d.toDateString() === today.toDateString()) return "Hoje";
+  if (d.toDateString() === y.toDateString()) return "Ontem";
+  return new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long" }).format(d);
+}
+function isBigEmoji(s) {
+  s = (s || "").trim();
+  if (!s || !/\p{Extended_Pictographic}/u.test(s)) return false;
+  if (!/^[\p{Extended_Pictographic}\p{Emoji_Component}\u200d\ufe0f\s]+$/u.test(s)) return false;
+  return [...new Intl.Segmenter("pt", { granularity: "grapheme" }).segment(s.replace(/\s/g, ""))].length <= 3;
+}
+function avatar(p, cls = "av") {
+  const a = document.createElement("span"); a.className = cls; a.textContent = p.emoji; a.style.background = tint(p.color); return a;
+}
+const blobToDataURL = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b); });
+
+/* ---------- entrada ---------- */
+function buildLogin() {
+  const box = $("#people"); box.innerHTML = "";
+  FAMILY.forEach(p => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "person";
+    const n = document.createElement("span"); n.textContent = p.name;
+    b.append(avatar(p), n);
+    b.onclick = () => {
+      selected = p;
+      document.querySelectorAll(".person").forEach(x => x.classList.toggle("sel", x === b));
+      $("#pwbox").classList.remove("hidden"); $("#err").textContent = ""; $("#pw").value = ""; $("#pw").focus();
+    };
+    box.append(b);
+  });
+}
+$("#pwbox").onsubmit = async e => {
+  e.preventDefault(); if (!selected) return;
+  $("#err").textContent = "";
+  try { await signInWithEmailAndPassword(auth, selected.email, $("#pw").value); }
+  catch (err) { $("#err").textContent = err.code === "auth/network-request-failed" ? "Sem internet. Tente de novo." : "Senha errada. Tente de novo."; }
+};
+
+onAuthStateChanged(auth, user => {
+  if (unsub) { unsub(); unsub = null; }
+  me = user ? byEmail(user.email) : null;
+  if (user && !me) { signOut(auth); return; }
+  $("#login").classList.toggle("hidden", !!me);
+  $("#chat").classList.toggle("hidden", !me);
+  if (!me) { buildLogin(); return; }
+  me = { ...me, uid: user.uid };
+  document.documentElement.style.setProperty("--mine", me.color);
+  $("#title").textContent = FAMILY_NAME;
+  $("#trio").replaceChildren(...FAMILY.map(p => avatar(p)));
+  if (isIOS && !standalone() && !localStorage.getItem("installHidden")) $("#installBanner").classList.remove("hidden");
+  startChat();
+  enablePush(true);
+});
+$("#installClose").onclick = () => { $("#installBanner").classList.add("hidden"); try { localStorage.setItem("installHidden", "1"); } catch {} };
+
+/* ---------- mensagens ---------- */
+const rendered = new Map();
+let lastDay = null, lastSender = null, lastTs = 0;
+function resetList() { $("#msgs").innerHTML = ""; rendered.clear(); lastDay = null; lastSender = null; lastTs = 0; }
+const showEmpty = () => $("#empty").classList.toggle("hidden", rendered.size > 0);
+const scrollBottom = () => { const m = $("#msgs"); m.scrollTop = m.scrollHeight; };
+
+function startChat() {
+  resetList();
+  let first = true;
+  const q = query(collection(db, "messages"), orderBy("createdAt", "desc"), limit(200));
+  unsub = onSnapshot(q, snap => {
+    if (first) {
+      first = false;
+      snap.docs.slice().reverse().forEach(d => append(d, false));
+      showEmpty(); scrollBottom(); return;
+    }
+    let rebuild = false;
+    snap.docChanges().forEach(ch => {
+      if (ch.type === "added") {
+        const m = ch.doc.data({ serverTimestamps: "estimate" });
+        const t = m.createdAt ? m.createdAt.toMillis() : Date.now();
+        if (rendered.size && t < lastTs - 2000) rebuild = true; else append(ch.doc, true);
+      } else if (ch.type === "removed") {
+        rendered.get(ch.doc.id)?.remove(); rendered.delete(ch.doc.id);
+      }
+    });
+    if (rebuild) { resetList(); snap.docs.slice().reverse().forEach(d => append(d, false)); scrollBottom(); }
+    showEmpty();
+  }, () => toast("Sem conexão com o chat. Verifique a internet."));
+}
+
+function append(d, live) {
+  const m = d.data({ serverTimestamps: "estimate" });
+  const t = m.createdAt ? m.createdAt.toMillis() : Date.now();
+  const p = byEmail(m.email) || { name: m.name || "?", emoji: "🙂", color: "#5E7187" };
+  const mine = m.uid === me.uid;
+  const box = $("#msgs");
+  const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
+
+  const day = new Date(t).toDateString();
+  if (day !== lastDay) {
+    const s = document.createElement("div"); s.className = "day"; s.textContent = dayLabel(t);
+    box.append(s); lastDay = day; lastSender = null;
+  }
+  const cont = lastSender === m.uid && t - lastTs < 5 * 60e3;
+  const row = document.createElement("div");
+  row.className = "row" + (mine ? " me" : "") + (cont ? " cont" : "");
+  row.style.setProperty("--c", p.color);
+
+  const b = document.createElement("div"); b.className = "bubble";
+  const who = document.createElement("div"); who.className = "who"; who.textContent = p.name; b.append(who);
+
+  if (m.type === "image") {
+    const img = new Image(); img.className = "photo"; img.alt = "Foto de " + p.name; img.src = m.data;
+    img.onclick = () => { $("#viewer img").src = m.data; $("#viewer").classList.remove("hidden"); };
+    img.onload = () => { if (!live || nearBottom || mine) scrollBottom(); };
+    b.append(img);
+  } else if (m.type === "audio") {
+    b.append(audioEl(m));
+  } else {
+    const tx = document.createElement("div"); tx.className = "text"; tx.textContent = m.text || "";
+    b.append(tx); if (isBigEmoji(m.text)) b.classList.add("big");
+  }
+  const tm = document.createElement("div"); tm.className = "time"; tm.textContent = hhmm(t); b.append(tm);
+
+  row.append(avatar(p), b); box.append(row);
+  rendered.set(d.id, row); lastSender = m.uid; lastTs = t;
+
+  if (mine) longPress(b, () => {
+    if (confirm("Apagar esta mensagem para todos?"))
+      deleteDoc(doc(db, "messages", d.id)).catch(() => toast("Não deu para apagar."));
+  });
+  if (!live || nearBottom || mine) scrollBottom();
+}
+
+function audioEl(m) {
+  const w = document.createElement("div"); w.className = "audio";
+  const btn = document.createElement("button"); btn.type = "button"; btn.className = "play";
+  btn.textContent = "▶\uFE0E"; btn.setAttribute("aria-label", "Ouvir áudio");
+  const track = document.createElement("div"); track.className = "track";
+  const fill = document.createElement("i"); track.append(fill);
+  const dur = document.createElement("span"); dur.className = "dur"; dur.textContent = mmss(m.duration || 0);
+  const a = new Audio(); a.preload = "none";
+  let ready = false;
+  btn.onclick = async () => {
+    if (!a.paused) { a.pause(); return; }
+    if (!ready) { const blob = await (await fetch(m.data)).blob(); a.src = URL.createObjectURL(blob); ready = true; }
+    if (currentAudio && currentAudio !== a) currentAudio.pause();
+    currentAudio = a;
+    a.play().catch(() => toast("Não deu para tocar o áudio."));
+  };
+  a.onplay = () => { btn.textContent = "❚❚"; btn.setAttribute("aria-label", "Pausar"); };
+  a.onpause = () => { btn.textContent = "▶\uFE0E"; btn.setAttribute("aria-label", "Ouvir áudio"); };
+  a.onended = () => { fill.style.width = "0"; dur.textContent = mmss(m.duration || 0); };
+  a.ontimeupdate = () => {
+    const D = m.duration || (isFinite(a.duration) ? a.duration : 1);
+    fill.style.width = Math.min(100, a.currentTime / D * 100) + "%"; dur.textContent = mmss(a.currentTime);
+  };
+  w.append(btn, track, dur); return w;
+}
+
+function longPress(el, fn) {
+  let t = null, x = 0, y = 0;
+  el.addEventListener("pointerdown", e => { x = e.clientX; y = e.clientY; t = setTimeout(fn, 650); });
+  el.addEventListener("pointermove", e => { if (Math.abs(e.clientX - x) > 10 || Math.abs(e.clientY - y) > 10) clearTimeout(t); });
+  ["pointerup", "pointercancel", "pointerleave"].forEach(ev => el.addEventListener(ev, () => clearTimeout(t)));
+  el.addEventListener("contextmenu", e => e.preventDefault());
+}
+
+function send(data) {
+  addDoc(collection(db, "messages"), { ...data, uid: me.uid, email: me.email, name: me.name, createdAt: serverTimestamp() })
+    .catch(() => toast("Não foi enviado. Verifique a internet."));
+}
+
+/* ---------- texto e emojis ---------- */
+const txt = $("#txt");
+function syncButtons() {
+  const has = txt.value.trim().length > 0;
+  $("#send").classList.toggle("hidden", !has); $("#mic").classList.toggle("hidden", has);
+  txt.style.height = "auto"; txt.style.height = Math.min(txt.scrollHeight + 4, 140) + "px";
+}
+function sendText() {
+  const v = txt.value.trim(); if (!v) return;
+  send({ type: "text", text: v.slice(0, 2000) });
+  txt.value = ""; syncButtons();
+}
+txt.addEventListener("input", syncButtons);
+txt.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendText(); } });
+txt.addEventListener("focus", () => { $("#emojis").classList.add("hidden"); setTimeout(scrollBottom, 300); });
+$("#send").onclick = sendText;
+
+const emojiBox = $("#emojis");
+EMOJIS.forEach(em => {
+  const b = document.createElement("button"); b.type = "button"; b.textContent = em; b.setAttribute("aria-label", em);
+  b.onclick = () => { txt.value += em; syncButtons(); };
+  emojiBox.append(b);
+});
+$("#emojiBtn").onclick = () => { emojiBox.classList.toggle("hidden"); txt.blur(); setTimeout(scrollBottom, 50); };
+
+/* ---------- fotos ---------- */
+$("#photoBtn").onclick = () => $("#file").click();
+$("#file").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  toast("Enviando foto…");
+  try { send({ type: "image", data: await compress(f) }); }
+  catch { toast("Não deu para usar essa foto."); }
+};
+async function compress(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    let max = 1280, q = 0.75, out = "";
+    for (let k = 0; k < 5; k++) {
+      const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      out = c.toDataURL("image/jpeg", q);
+      if (out.length < 700000) break;
+      max *= 0.8; q = Math.max(0.5, q - 0.08);
+    }
+    if (out.length > 900000) throw new Error("grande");
+    return out;
+  } finally { URL.revokeObjectURL(url); }
+}
+$("#viewer").onclick = () => $("#viewer").classList.add("hidden");
+
+/* ---------- áudio ---------- */
+let rec = null, recStream = null, chunks = [], recStart = 0, recTimer = null, cancelRec = false;
+const MAX_SEC = 60;
+function showRec(on) { $("#recbar").classList.toggle("hidden", !on); $("#compose").classList.toggle("hidden", on); emojiBox.classList.add("hidden"); }
+$("#mic").onclick = async () => {
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { toast("Este aparelho não grava áudio aqui."); return; }
+  try { recStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch { toast("Libere o microfone para gravar."); return; }
+  const type = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"].find(t => MediaRecorder.isTypeSupported(t));
+  rec = new MediaRecorder(recStream, type ? { mimeType: type, audioBitsPerSecond: 32000 } : {});
+  chunks = []; cancelRec = false;
+  rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  rec.onstop = async () => {
+    recStream.getTracks().forEach(t => t.stop()); clearInterval(recTimer); showRec(false);
+    const secs = Math.round((Date.now() - recStart) / 1000);
+    if (cancelRec || secs < 1) return;
+    const data = await blobToDataURL(new Blob(chunks, { type: rec.mimeType || type || "audio/mp4" }));
+    if (data.length > 900000) { toast("Áudio grande demais."); return; }
+    send({ type: "audio", data, duration: Math.min(secs, MAX_SEC) });
+  };
+  rec.start(500); recStart = Date.now(); showRec(true);
+  $("#recTime").textContent = "0:00 / 1:00";
+  recTimer = setInterval(() => {
+    const s = Math.floor((Date.now() - recStart) / 1000);
+    $("#recTime").textContent = `${mmss(s)} / 1:00`;
+    if (s >= MAX_SEC && rec.state === "recording") rec.stop();
+  }, 250);
+};
+const stopRec = cancel => { cancelRec = cancel; if (rec && rec.state === "recording") rec.stop(); };
+$("#recCancel").onclick = () => stopRec(true);
+$("#recSend").onclick = () => stopRec(false);
+
+/* ---------- avisos (notificações) ---------- */
+async function enablePush(silent) {
+  try {
+    if (!("serviceWorker" in navigator) || !("Notification" in window) || !(await isSupported())) {
+      if (!silent) toast(isIOS && !standalone() ? "Primeiro adicione o app à Tela de Início." : "Este aparelho não recebe avisos.", 3500);
+      return;
+    }
+    if (!silent) {
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") { toast("Avisos não liberados. Dá para mudar nos Ajustes do aparelho.", 3500); return; }
+    } else if (Notification.permission !== "granted") return;
+    const reg = await navigator.serviceWorker.register("./firebase-messaging-sw.js", { scope: "./" });
+    await navigator.serviceWorker.ready;
+    myToken = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    if (myToken) {
+      await setDoc(doc(db, "tokens", me.uid), { tokens: arrayUnion(myToken) }, { merge: true });
+      if (!silent) toast("Avisos ativados ✅");
+    }
+  } catch (e) { console.error(e); if (!silent) toast("Não deu para ativar os avisos."); }
+  updatePushUI();
+}
+function updatePushUI() {
+  const on = "Notification" in window && Notification.permission === "granted" && myToken;
+  $("#pushBtn").textContent = on ? "🔔 Avisos ativados" : "🔔 Ativar avisos de mensagem";
+  $("#pushNote").textContent = isIOS && !standalone()
+    ? "No iPhone e no iPad, os avisos só funcionam com o app aberto pelo ícone da Tela de Início."
+    : "";
+}
+$("#pushBtn").onclick = () => enablePush(false);
+
+/* ---------- ajustes ---------- */
+$("#menuBtn").onclick = () => { updatePushUI(); $("#sheet").classList.remove("hidden"); };
+$("#sheetClose").onclick = () => $("#sheet").classList.add("hidden");
+$("#sheet").onclick = e => { if (e.target.id === "sheet") $("#sheet").classList.add("hidden"); };
+$("#logoutBtn").onclick = async () => {
+  if (!confirm("Sair desta conta neste aparelho?")) return;
+  $("#sheet").classList.add("hidden");
+  if (myToken) { try { await setDoc(doc(db, "tokens", me.uid), { tokens: arrayRemove(myToken) }, { merge: true }); } catch {} myToken = null; }
+  await signOut(auth);
+};
+
+/* ---------- limpar o selo do ícone ao abrir ---------- */
+async function clearBadge() {
+  if (document.visibilityState !== "visible") return;
+  try { await navigator.clearAppBadge?.(); } catch {}
+  try { const reg = await navigator.serviceWorker?.getRegistration("./"); (await reg?.getNotifications() || []).forEach(n => n.close()); } catch {}
+}
+document.addEventListener("visibilitychange", clearBadge);
+clearBadge();
+</script>
+</body>
+</html>
